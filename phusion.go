@@ -36,7 +36,7 @@ func (ed *EnterpriseDist) destroy() error {
 
 func (ed *EnterpriseDist) install() {
     ederb := fmt.Sprintf("%v/ext/erb", ed.Path)
-    peerb := fmt.Sprintf("%v/puppet-enterprise/erb", *modulepath)
+    peerb := fmt.Sprintf("%v/puppet-enterprise/erb", modulepath)
     err := os.RemoveAll( peerb )
     if err != nil {
         logError( err )
@@ -54,7 +54,7 @@ func (ed *EnterpriseDist) install() {
         "pe-classification.rb",
     } {
         edcp := fmt.Sprintf("%v/installer/%v", ed.Path, component)
-        pecp := fmt.Sprintf("%v/puppet-enterprise/%v", *modulepath, component)
+        pecp := fmt.Sprintf("%v/puppet-enterprise/%v", modulepath, component)
         err = CopyFile(edcp, pecp)
         if err != nil {
             logError( fmt.Errorf( "CopyFile failed %q", err ) )
@@ -78,7 +78,7 @@ func (m *Module) install() {
         return
     }
     pkg := fmt.Sprintf( "%v/%v", pkgPath, pkgName )
-    pemodulepath := fmt.Sprintf("%v/puppet-enterprise/modules", *modulepath)
+    pemodulepath := fmt.Sprintf("%v/puppet-enterprise/modules", modulepath)
     old, err := getFile( pemodulepath, tarRegex )
     if err != nil {
         logError( err )
@@ -128,14 +128,21 @@ func (m *Module) destroy() error {
     return os.RemoveAll(m.Path)
 }
 
-var username, password, modulepath *string
+var username, password, modulepath string
 
 func init() {
-    username  = flag.String("user", "ajroetker@gmail.com", "GitHub User")
-    password  = flag.String("password", "*************", "GitHub Password")
+    const (
+        defaultUser = "ajroetker@gmail.com"
+        defaultPassword = "1234!@#$"
+    )
+    flag.StringVar(&username, "user", defaultUser, "GitHub User")
+    flag.StringVar(&username, "u", defaultUser, "GitHub User (shorthand)")
+    flag.StringVar(&password, "password", defaultPassword, "GitHub Password")
+    flag.StringVar(&password, "p", defaultPassword, "GitHub Password (shorthand)")
     dir, err := os.Getwd()
     logFatal(err)
-    modulepath = flag.String("modulepath", dir, "Build Directory")
+    flag.StringVar(&modulepath, "modulepath", dir, "Build Directory")
+    flag.StringVar(&modulepath, "m", dir, "Build Directory (shorthand)")
 }
 
 func logError( err error ){
@@ -158,7 +165,7 @@ func transfer_progress_cb(stats git.TransferProgress) int {
 func cred_acquire_cb(url string,
                      username_from_url string,
                      allowed_types git.CredType) (int, *git.Cred) {
-    status, cred := git.NewCredUserpassPlaintext(*username, *password)
+    status, cred := git.NewCredUserpassPlaintext(username, password)
     return status, &cred
 }
 
@@ -206,10 +213,10 @@ func main() {
         Module map[string]*Module
     }{}
     gcfg.ReadFileInto( &cfg, "phusion.gcfg" )
-    cfg.Enterprise_Dist.Path = fmt.Sprintf( "%v/enterprise-dist", *modulepath )
+    cfg.Enterprise_Dist.Path = fmt.Sprintf( "%v/enterprise-dist", modulepath )
     for module_name := range cfg.Module {
         cfg.Module[module_name].Name = module_name
-        cfg.Module[module_name].Path = fmt.Sprintf( "%v/%v", *modulepath, cfg.Module[module_name].Name )
+        cfg.Module[module_name].Path = fmt.Sprintf( "%v/%v", modulepath, cfg.Module[module_name].Name )
     }
     enterprise_dist := cfg.Enterprise_Dist
     pe_module := cfg.Module["puppetlabs-puppet_enterprise"]
@@ -218,14 +225,14 @@ func main() {
     // fmt.Printf("modules: %v\n", cfg.Module["puppetlabs-puppet_enterprise"])
     // enterprise_dist := &EnterpriseDist{
     //     Owner  : "puppetlabs",
-    //     Path   : fmt.Sprintf( "%v/enterprise-dist", *modulepath ),
+    //     Path   : fmt.Sprintf( "%v/enterprise-dist", modulepath ),
     //     Branch : "3.4.x",
     // }
     // module_name := "puppetlabs-puppet_enterprise"
     // pe_module := &Module{
     //     Name   : module_name,
     //     Owner  : "puppetlabs",
-    //     Path   : fmt.Sprintf( "%v/%v", *modulepath, module_name ),
+    //     Path   : fmt.Sprintf( "%v/%v", modulepath, module_name ),
     //     Branch : "3.4.x",
     // }
     if len(os.Args) > 1 && os.Args[1] == "clean" {
