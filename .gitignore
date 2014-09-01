@@ -1,0 +1,5 @@
+.*.sw?
+versions/
+tarballs/
+puppet*/
+enterprise-dist/

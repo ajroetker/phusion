@@ -1,0 +1,16 @@
+;;;;;;; EXAMPLE
+;
+; ; Comment line
+; [section]
+; name = value # Another comment
+; flag # implicit value for bool is true
+;
+;;;;;;;
+
+[ enterprise-dist ]
+owner  = "puppetlabs"
+branch = "3.4.x"
+
+[ module "puppetlabs-puppet_enterprise" ]
+owner  = "puppetlabs"
+branch = "3.4.x"
