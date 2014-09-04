@@ -220,24 +220,14 @@ func main() {
     }
     enterprise_dist := cfg.Enterprise_Dist
     pe_module := cfg.Module["puppetlabs-puppet_enterprise"]
-    // TODO Remove this once confident in configurability
-    // fmt.Printf("enterprise-dist: %v\n", cfg.Enterprise_Dist)
-    // fmt.Printf("modules: %v\n", cfg.Module["puppetlabs-puppet_enterprise"])
-    // enterprise_dist := &EnterpriseDist{
-    //     Owner  : "puppetlabs",
-    //     Path   : fmt.Sprintf( "%v/enterprise-dist", modulepath ),
-    //     Branch : "3.4.x",
-    // }
-    // module_name := "puppetlabs-puppet_enterprise"
-    // pe_module := &Module{
-    //     Name   : module_name,
-    //     Owner  : "puppetlabs",
-    //     Path   : fmt.Sprintf( "%v/%v", modulepath, module_name ),
-    //     Branch : "3.4.x",
-    // }
-    if len(os.Args) > 1 && os.Args[1] == "clean" {
-        enterprise_dist.destroy()
-        pe_module.destroy()
+    if len(os.Args) > 1 {
+        switch os.Args[1] {
+        case "clean":
+            enterprise_dist.destroy()
+            pe_module.destroy()
+        case "install":
+            install()
+        }
     } else {
         enterprise_dist.phuse()
         pe_module.phuse()
